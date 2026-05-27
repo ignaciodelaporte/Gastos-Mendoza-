@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastos del Viaje</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2e2e2e;
+    --accent: #f0c040;
+    --accent2: #4ecdc4;
+    --danger: #ff6b6b;
+    --text: #f0ede8;
+    --muted: #888;
+    --names: #Ignacio, #Gastón, #Diego, #Tito;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* FORM */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-row.three { grid-template-columns: 2fr 1fr 1fr; }
+
+  label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 5px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.88rem;
+    padding: 8px 10px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--bg); }
+
+  .checkbox-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .check-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .check-pill input[type=checkbox] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .check-pill:has(input:checked) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-add {
+    width: 100%;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.15s;
+    margin-top: 6px;
+  }
+  .btn-add:hover { opacity: 0.85; }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  th {
+    text-align: left;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #1e1e1e;
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: #181818; }
+
+  .cat-badge {
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: #252525;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .btn-del {
+    background: none;
+    border: 1px solid #333;
+    color: var(--danger);
+    border-radius: 3px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-family: 'IBM Plex Mono', monospace;
+    transition: all 0.15s;
+  }
+  .btn-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+  .amount-cell { color: var(--accent); font-weight: 500; }
+
+  .payer-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.72rem;
+  }
+
+  /* RESUMEN */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+
+  .summary-card .name {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .summary-card .paid {
+    font-size: 1.1rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .summary-card .balance {
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+
+  .pos { color: var(--accent2); }
+  .neg { color: var(--danger); }
+  .zero { color: var(--muted); }
+
+  /* LIQUIDACIÓN */
+  .liq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+
+  .liq-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .transfer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+  }
+
+  .t-arrow { color: var(--muted); font-size: 0.9rem; }
+  .t-amount { color: var(--accent); font-weight: 500; margin-left: auto; }
+  .t-from { color: var(--danger); }
+  .t-to { color: var(--accent2); }
+
+  .total-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .total-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .total-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .export-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    transition: all 0.15s;
+  }
+  .export-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  @media (max-width: 500px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .form-row.three { grid-template-columns: 1fr 1fr; }
+    .form-row.three .field:first-child { grid-column: 1/-1; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✈ GASTOS</h1>
+  <span class="subtitle" id="tripLabel">del viaje</span>
+  <div class="header-actions">
+    <button class="export-btn" onclick="exportCSV()">↓ CSV</button>
+  </div>
+</header>
+
+<!-- FORM -->
+<div class="form-card">
+  <div class="form-row three">
+    <div class="field">
+      <label>Descripción</label>
+      <input type="text" id="desc" placeholder="Ej: almuerzo, hotel...">
+    </div>
+    <div class="field">
+      <label>Monto ($)</label>
+      <input type="number" id="amount" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="cat">
+        <option value="Comida">🍽 Comida</option>
+        <option value="Alojamiento">🏨 Alojamiento</option>
+        <option value="Transporte">🚗 Transporte</option>
+        <option value="Actividad">🎯 Actividad</option>
+        <option value="Compras">🛍 Compras</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="field">
+      <label>¿Quién pagó?</label>
+      <select id="payer">
+        <option value="Ignacio">Ignacio</option>
+        <option value="Gastón">Gastón</option>
+        <option value="Diego">Diego</option>
+        <option value="Tito">Tito</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Fecha</label>
+      <input type="date" id="date">
+    </div>
+  </div>
+
+  <div class="form-row full">
+    <label>¿A quiénes aplica?</label>
+    <div class="checkbox-group">
+      <label class="check-pill"><input type="checkbox" value="Ignacio" checked> Ignacio</label>
+      <label class="check-pill"><input type="checkbox" value="Gastón" checked> Gastón</label>
+      <label class="check-pill"><input type="checkbox" value="Diego" checked> Diego</label>
+      <label class="check-pill"><input type="checkbox" value="Tito" checked> Tito</label>
+    </div>
+  </div>
+
+  <button class="btn-add" onclick="addExpense()">+ AGREGAR GASTO</button>
+</div>
+
+<!-- TOTAL -->
+<div class="total-bar">
+  <span class="total-label">Total gastado</span>
+  <span class="total-amount" id="totalAmount">$0.00</span>
+</div>
+
+<!-- TABLA -->
+<p class="section-title">Registro</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Descripción</th>
+        <th>Cat.</th>
+        <th>Monto</th>
+        <th>Pagó</th>
+        <th>Para</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="expenseTable">
+      <tr><td colspan="7" class="empty-state">Sin gastos aún. ¡Agregá el primero!</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SUMMARY -->
+<p class="section-title">Por persona</p>
+<div class="summary-grid" id="summaryGrid"></div>
+
+<!-- LIQUIDACIÓN -->
+<div class="liq-card">
+  <p class="liq-title">⇄ Cómo liquidar</p>
+  <div id="settlements"></div>
+</div>
+
+<script>
+const PEOPLE = ['Ignacio','Gastón','Diego','Tito'];
+const COLORS = { Ignacio:'#f0c040', Gastón:'#4ecdc4', Diego:'#a78bfa', Tito:'#fb923c' };
+
+let expenses = JSON.parse(localStorage.getItem('viaje_expenses') || '[]');
+
+// Set today's date
+document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+function save() {
+  localStorage.setItem('viaje_expenses', JSON.stringify(expenses));
+}
+
+function formatMoney(n) {
+  return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function addExpense() {
+  const desc = document.getElementById('desc').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const cat = document.getElementById('cat').value;
+  const payer = document.getElementById('payer').value;
+  const date = document.getElementById('date').value;
+  const forPeople = [...document.querySelectorAll('.check-pill input:checked')].map(c => c.value);
+
+  if (!desc) { alert('Faltó la descripción.'); return; }
+  if (!amount || amount <= 0) { alert('Monto inválido.'); return; }
+  if (forPeople.length === 0) { alert('Seleccioná al menos una persona.'); return; }
+
+  expenses.push({ id: Date.now(), desc, amount, cat, payer, date, for: forPeople });
+  save();
+  render();
+
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('date').value = new Date().toISOString().split('T')[0];
+}
+
+function deleteExpense(id) {
+  expenses = expenses.filter(e => e.id !== id);
+  save();
+  render();
+}
+
+function render() {
+  renderTable();
+  renderSummary();
+  renderSettlements();
+  document.getElementById('totalAmount').textContent = formatMoney(
+    expenses.reduce((a,e) => a + e.amount, 0)
+  );
+}
+
+function renderTable() {
+  const tbody = document.getElementById('expenseTable');
+  if (expenses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Sin gastos aún.</td></tr>';
+    return;
+  }
+  const sorted = [...expenses].sort((a,b) => b.id - a.id);
+  tbody.innerHTML = sorted.map(e => `
+    <tr>
+      <td style="color:var(--muted);font-size:0.75rem">${e.date || '—'}</td>
+      <td>${e.desc}</td>
+      <td><span class="cat-badge">${e.cat}</span></td>
+      <td class="amount-cell">${formatMoney(e.amount)}</td>
+      <td><span class="payer-tag" style="color:${COLORS[e.payer]};border:1px solid ${COLORS[e.payer]}33">${e.payer}</span></td>
+      <td style="font-size:0.72rem;color:var(--muted)">${e.for.join(', ')}</td>
+      <td><button class="btn-del" onclick="deleteExpense(${e.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function calcBalances() {
+  // paid[person] = total paid
+  // owed[person] = total they owe (their share of each expense)
+  const paid = {}, owed = {};
+  PEOPLE.forEach(p => { paid[p] = 0; owed[p] = 0; });
+
+  expenses.forEach(e => {
+    paid[e.payer] += e.amount;
+    const share = e.amount / e.for.length;
+    e.for.forEach(p => { owed[p] += share; });
+  });
+
+  const balance = {};
+  PEOPLE.forEach(p => { balance[p] = paid[p] - owed[p]; });
+  return { paid, owed, balance };
+}
+
+function renderSummary() {
+  const { paid, owed, balance } = calcBalances();
+  const grid = document.getElementById('summaryGrid');
+  grid.innerHTML = PEOPLE.map(p => {
+    const b = balance[p];
+    const cls = b > 0.01 ? 'pos' : b < -0.01 ? 'neg' : 'zero';
+    const sign = b > 0.01 ? '+ le deben' : b < -0.01 ? '− debe' : '✓ ok';
+    return `
+      <div class="summary-card">
+        <div class="name" style="color:${COLORS[p]}">${p}</div>
+        <div class="paid">${formatMoney(paid[p])}</div>
+        <div class="balance ${cls}">${sign} ${formatMoney(Math.abs(b))}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSettlements() {
+  const { balance } = calcBalances();
+  const container = document.getElementById('settlements');
+
+  // Minimum cash flow algorithm
+  const bal = PEOPLE.map(p => ({ name: p, b: balance[p] }));
+  const transfers = [];
+
+  for (let iter = 0; iter < 20; iter++) {
+    const debtors = bal.filter(x => x.b < -0.005).sort((a,b) => a.b - b.b);
+    const creditors = bal.filter(x => x.b > 0.005).sort((a,b) => b.b - a.b);
+    if (debtors.length === 0 || creditors.length === 0) break;
+
+    const d = debtors[0], c = creditors[0];
+    const amount = Math.min(-d.b, c.b);
+    transfers.push({ from: d.name, to: c.name, amount });
+    d.b += amount;
+    c.b -= amount;
+  }
+
+  if (transfers.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:0.82rem">Todo está saldado ✓</div>';
+    return;
+  }
+
+  container.innerHTML = transfers.map(t => `
+    <div class="transfer-row">
+      <span class="t-from">${t.from}</span>
+      <span class="t-arrow">→</span>
+      <span class="t-to">${t.to}</span>
+      <span class="t-amount">${formatMoney(t.amount)}</span>
+    </div>
+  `).join('');
+}
+
+function exportCSV() {
+  if (expenses.length === 0) { alert('No hay gastos para exportar.'); return; }
+  const header = ['Fecha','Descripción','Categoría','Monto','Pagó','Para'];
+  const rows = expenses.map(e => [e.date, e.desc, e.cat, e.amount.toFixed(2), e.payer, e.for.join('|')]);
+  const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'gastos_viaje.csv';
+  a.click();
+}
+
+render();
+</script>
+</body>
+</html>
